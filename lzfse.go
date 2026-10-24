@@ -159,7 +159,7 @@ func (lib *Library) EncodeBuffer(src []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return dst[:n], nil
+	return shrink(dst[:n]), nil
 }
 
 // EncodeBufferInto compresses src into dst and returns the number of bytes
@@ -211,6 +211,7 @@ func (lib *Library) DecodeBuffer(src []byte) ([]byte, error) {
 		dst := make([]byte, size+1)
 		n := lib.decodeBuffer(sliceData(dst), uintptr(size+1), s, uintptr(len(src)), scratch)
 		keepAlive(dst)
+		keepAlive(src)
 		if n == uintptr(size) {
 			return dst[:size], nil
 		}
@@ -220,11 +221,12 @@ func (lib *Library) DecodeBuffer(src []byte) ([]byte, error) {
 	for range 16 {
 		n := lib.decodeBuffer(sliceData(dst), uintptr(len(dst)), s, uintptr(len(src)), scratch)
 		keepAlive(dst)
+		keepAlive(src)
 		// lzfse_decode_buffer returns dst_size when the output did not fit,
 		// and 0 on malformed input; the only way to tell them apart is to
 		// retry with a larger buffer, as the reference CLI does.
 		if n != 0 && n != uintptr(len(dst)) {
-			return dst[:n], nil
+			return shrink(dst[:n]), nil
 		}
 		next := len(dst) * 2
 		if n == 0 || next > maxDecodeSize(len(src)) {
@@ -261,6 +263,7 @@ func (lib *Library) decodeIntoChecked(src, dst []byte, scratch uintptr) (int, er
 	s := sliceData(src)
 	n := lib.decodeBuffer(sliceData(dst), uintptr(len(dst)), s, uintptr(len(src)), scratch)
 	keepAlive(dst)
+	keepAlive(src)
 	if n == 0 {
 		return 0, ErrDecompress
 	}
@@ -272,6 +275,7 @@ func (lib *Library) decodeIntoChecked(src, dst []byte, scratch uintptr) (int, er
 	probe := make([]byte, len(dst)+1)
 	pn := lib.decodeBuffer(sliceData(probe), uintptr(len(probe)), s, uintptr(len(src)), scratch)
 	keepAlive(probe)
+	keepAlive(src)
 	if pn > uintptr(len(dst)) {
 		return 0, ErrShortBuffer
 	}

@@ -40,6 +40,25 @@ func decodeDestSize(n int) int {
 	return n * 4
 }
 
+// shrink returns b with its backing array trimmed to b's length when the
+// array is much larger. The output buffers are sized for the worst case, so
+// returning them as they are would keep far more memory alive than the data
+// they hold for as long as the caller keeps the result.
+func shrink(b []byte) []byte {
+	if cap(b)-len(b) <= len(b)/4 {
+		return b
+	}
+	return append(make([]byte, 0, len(b)), b...)
+}
+
+// maxPeekRatio bounds how much larger than the compressed input a size read
+// from a block header may be before it is distrusted. The header is
+// attacker-controlled: without the bound, an 8 byte input could make
+// DecodeBuffer allocate gigabytes. LZVN expands at most ~140x, so a larger
+// claim is not worth an up-front allocation; DecodeBuffer's bounded growth
+// path handles it instead.
+const maxPeekRatio = 1 << 10
+
 // peekDecodedSize returns the total decoded size of an LZFSE stream when it
 // is readable from the first block header, or 0. Both the "bvx-" raw block
 // and the "bvxn" LZVN block header store the block's decoded byte count at
@@ -54,5 +73,9 @@ func peekDecodedSize(src []byte) int {
 	if magic != 0x2d787662 && magic != 0x6e787662 {
 		return 0
 	}
-	return int(binary.LittleEndian.Uint32(src[4:8]))
+	size := uint64(binary.LittleEndian.Uint32(src[4:8]))
+	if size > uint64(len(src))*maxPeekRatio {
+		return 0
+	}
+	return int(size)
 }

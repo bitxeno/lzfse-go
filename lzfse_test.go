@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"testing"
 )
@@ -311,6 +312,47 @@ func TestDecodeBufferGrowsDestination(t *testing.T) {
 	}
 	if len(dec) != len(src) {
 		t.Fatalf("decoded %d bytes, want %d", len(dec), len(src))
+	}
+}
+
+// TestDecodeBufferForgedHeaderAllocation checks that a tiny input whose block
+// header claims a huge decoded size does not make DecodeBuffer allocate that
+// much memory up front.
+func TestDecodeBufferForgedHeaderAllocation(t *testing.T) {
+	DefaultLibraryOrSkip(t)
+	src := make([]byte, 8)
+	binary.LittleEndian.PutUint32(src, 0x2d787662) // "bvx-"
+	binary.LittleEndian.PutUint32(src[4:], 0xF0000000)
+
+	var before, after runtime.MemStats
+	runtime.ReadMemStats(&before)
+	if _, err := DecodeBuffer(src); err == nil {
+		t.Fatal("DecodeBuffer accepted a forged header")
+	}
+	runtime.ReadMemStats(&after)
+	if grown := after.TotalAlloc - before.TotalAlloc; grown > 1<<30 {
+		t.Fatalf("DecodeBuffer allocated %d MB for an %d byte input", grown>>20, len(src))
+	}
+}
+
+// TestResultsDoNotRetainScratchSpace checks that the slices returned by
+// EncodeBuffer and DecodeBuffer do not pin worst-case sized backing arrays.
+func TestResultsDoNotRetainScratchSpace(t *testing.T) {
+	DefaultLibraryOrSkip(t)
+	src := make([]byte, 1<<20) // zeros: compress to almost nothing
+	enc, err := EncodeBuffer(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cap(enc) > len(enc)+len(enc)/4 {
+		t.Errorf("EncodeBuffer result retains %d bytes for %d bytes of data", cap(enc), len(enc))
+	}
+	dec, err := DecodeBuffer(enc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cap(dec) > len(dec)+len(dec)/4 {
+		t.Errorf("DecodeBuffer result retains %d bytes for %d bytes of data", cap(dec), len(dec))
 	}
 }
 
