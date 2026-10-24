@@ -3,8 +3,6 @@
 [![Go CI](https://github.com/bitxeno/lzfse-go/actions/workflows/go.yml/badge.svg?branch=main)](https://github.com/bitxeno/lzfse-go/actions/workflows/go.yml)
 [![Release](https://img.shields.io/github/v/release/bitxeno/lzfse-go?sort=semver)](https://github.com/bitxeno/lzfse-go/releases/latest)
 [![Go version](https://img.shields.io/github/go-mod/go-version/bitxeno/lzfse-go)](https://go.dev/)
-[![Go Reference](https://pkg.go.dev/badge/github.com/bitxeno/lzfse-go.svg)](https://pkg.go.dev/github.com/bitxeno/lzfse-go)
-[![Go Report Card](https://goreportcard.com/badge/github.com/bitxeno/lzfse-go)](https://goreportcard.com/report/github.com/bitxeno/lzfse-go)
 [![License: MIT](https://img.shields.io/github/license/bitxeno/lzfse-go)](LICENSE)
 ![CGO_ENABLED=0](https://img.shields.io/badge/CGO_ENABLED-0-success)
 
