@@ -1,0 +1,4 @@
+# Test vectors contain raw compressed streams whose bytes must match
+# exactly; never let git convert line endings on checkout.
+testdata/*.bin binary
+libs/** binary
