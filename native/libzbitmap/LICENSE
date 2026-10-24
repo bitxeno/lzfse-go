@@ -1,0 +1,9 @@
+libzbitmap: LZBITMAP container format
+https://github.com/eafer/libzbitmap
+
+SPDX-License-Identifier: GPL-2.0+ OR MIT
+Copyright (c) 2022 Corellium LLC (ported variant as used by lzfse-cgo)
+https://github.com/linux-apfs/linux-apfs-rw/blob/master/libzbitmap.c
+
+The vendored files are taken from github.com/blacktop/lzfse-cgo, which
+carries the same dual license.

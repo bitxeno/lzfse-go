@@ -1,0 +1,11 @@
+LIBRARY lzfse-go
+EXPORTS
+  lzfse_encode_scratch_size
+  lzfse_encode_buffer
+  lzfse_decode_scratch_size
+  lzfse_decode_buffer
+  lzvn_encode_scratch_size
+  lzvn_encode_buffer
+  lzvn_decode_buffer
+  lzfse_zbm_compress
+  lzfse_zbm_decompress
